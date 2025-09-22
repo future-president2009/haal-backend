@@ -1,12 +1,8 @@
 const OpenAI = require('openai');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
-
 exports.handler = async (event, context) => {
   const headers = {
-    'Access-Control-Allow-Origin': 'https://haalapp.com',
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'POST'
   };
@@ -20,12 +16,16 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { messages, maxTokens = 150 } = JSON.parse(event.body);
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY
+    });
+
+    const { messages } = JSON.parse(event.body);
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages,
-      max_tokens: maxTokens,
+      model: 'gpt-3.5-turbo',
+      messages: messages,
+      max_tokens: 150,
       temperature: 0.7
     });
 
@@ -40,7 +40,10 @@ exports.handler = async (event, context) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'AI service temporarily unavailable' })
+      body: JSON.stringify({ 
+        error: error.message,
+        details: error.toString()
+      })
     };
   }
 };
